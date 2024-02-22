@@ -69,7 +69,7 @@ select_columns = [
     'Buyer Country',
     'Buyer Postal Code'
 ]
-# The name og the date column that has to be converted
+# The name of the date column that has to be converted
 date_column = 'Transaction Date'
 
 # The final processed DataFrame to be used by the dashboard
@@ -87,7 +87,7 @@ select_columns = [
     'Daily Crashes',
     'Daily ANRs'
 ]
-# The name og the date column that has to be converted
+# The name of the date column that has to be converted
 date_column = 'Date'
 
 # The final processed DataFrame to be used by the dashboard
@@ -106,7 +106,7 @@ select_columns = [
     'Daily Average Rating',
     'Total Average Rating'
 ]
-# The name og the date column that has to be converted
+# The name of the date column that has to be converted
 date_column = 'Date'
 
 # The final processed DataFrame to be used by the dashboard
