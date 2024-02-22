@@ -27,3 +27,5 @@ print(ratings)
 # rating per country in a geographical setting (using the geopandas package, see more
 # information below) , for example the number of customers per country over time. The goal is
 # again to give management as much geographic insight as possible.
+
+# TO-DO
