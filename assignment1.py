@@ -49,7 +49,6 @@ row_conditions = {
 # Columns to select in the DataFrames
 select_columns = [
     'Transaction Date',
-    'Product id',
     'Sku Id',
     'Buyer Country',
     'Buyer Postal Code'
