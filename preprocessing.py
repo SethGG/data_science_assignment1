@@ -1,3 +1,9 @@
+# The code in this file is responsible for:
+# - Finding all CSV files in the path
+# - Loading all CSV files into DataFrames
+# - Preprocessing the DataFrames
+# - Concatenating the DataFrames per month into a single DataFrame for sales, crashes and ratings
+
 import pandas as pd
 import glob
 
@@ -9,6 +15,16 @@ ratings_files = glob.glob(path + "/stats_ratings_*_country.csv")
 
 
 def preprocessing(dfs, column_renames, row_conditions, select_columns, date_column):
+    """
+    Helper function for preprocessing the datasets.
+    Parameters:
+        dfs: list of DataFrames to be processed
+        column_renames: dict with columns to be renamed (key to value)
+        row_conditions: dict with conditions on which rows should be selected (key is column and value is target value)
+        select_columns: list of columns to include in the output
+        data_column: the name of the column containing date information
+    Returns: A concatenated DataFrame from all the processed DataFrames ordered by date
+    """
     processed_dfs = []
     for df in dfs:
         # Rename columns as defined in column_renames
@@ -56,6 +72,7 @@ select_columns = [
 # The name og the date column that has to be converted
 date_column = 'Transaction Date'
 
+# The final processed DataFrame to be used by the dashboard
 sales = preprocessing(sales_dfs, column_renames, row_conditions, select_columns, date_column)
 
 #########################
@@ -73,6 +90,7 @@ select_columns = [
 # The name og the date column that has to be converted
 date_column = 'Date'
 
+# The final processed DataFrame to be used by the dashboard
 crashes = preprocessing(crashes_dfs, {}, {}, select_columns, date_column)
 
 #########################
@@ -91,4 +109,5 @@ select_columns = [
 # The name og the date column that has to be converted
 date_column = 'Date'
 
+# The final processed DataFrame to be used by the dashboard
 ratings = preprocessing(ratings_dfs, {}, {}, select_columns, date_column)
