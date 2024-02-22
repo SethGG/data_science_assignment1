@@ -1,3 +1,9 @@
+# The code in this file is responsible for:
+# - Finding all CSV files in the path
+# - Loading all CSV files into DataFrames
+# - Preprocessing the DataFrames
+# - Concatenating the DataFrames per month into a single DataFrame for sales, crashes and ratings
+
 import pandas as pd
 import glob
 
@@ -17,6 +23,7 @@ def preprocessing(dfs, column_renames, row_conditions, select_columns, date_colu
         row_conditions: dict with conditions on which rows should be selected (key is column and value is target value)
         select_columns: list of columns to include in the output
         data_column: the name of the column containing date information
+    Returns: A concatenated DataFrame from all the processed DataFrames ordered by date
     """
     processed_dfs = []
     for df in dfs:
