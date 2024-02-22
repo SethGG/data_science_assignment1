@@ -8,7 +8,7 @@ crashes_files = glob.glob(path + "/stats_crashes_*_overview.csv")
 ratings_files = glob.glob(path + "/stats_ratings_*_country.csv")
 
 
-def preprocessing(dfs, column_names, row_conditions, select_columns, date_column):
+def preprocessing(dfs, column_renames, row_conditions, select_columns, date_column):
     processed_dfs = []
     for df in dfs:
         # Rename columns as defined in column_renames
@@ -57,7 +57,6 @@ select_columns = [
 date_column = 'Transaction Date'
 
 sales = preprocessing(sales_dfs, column_renames, row_conditions, select_columns, date_column)
-print(sales)
 
 #########################
 # Crashes Preprocessing #
@@ -75,7 +74,6 @@ select_columns = [
 date_column = 'Date'
 
 crashes = preprocessing(crashes_dfs, {}, {}, select_columns, date_column)
-print(crashes)
 
 #########################
 # Ratings Preprocessing #
@@ -94,4 +92,3 @@ select_columns = [
 date_column = 'Date'
 
 ratings = preprocessing(ratings_dfs, {}, {}, select_columns, date_column)
-print(ratings)
