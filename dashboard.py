@@ -1,4 +1,6 @@
 from preprocessing import sales, crashes, ratings
+from bokeh.io import output_file
+from bokeh.plotting import figure, show
 
 print(sales)
 print(crashes)
@@ -8,7 +10,10 @@ print(ratings)
 # terms of at least two measures. For example: real money (Amount) and transaction count
 # (row count).
 
-# TO-DO
+output_file("vis1.html")
+fig = figure()
+
+show(fig)
 
 # Attribute Segmentation and Filtering: Present sales volume (as above) segmented per
 # attribute: at least the SKU id (in-app purchase option) attribute should be included, but you
