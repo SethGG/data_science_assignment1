@@ -37,7 +37,9 @@ def preprocessing(dfs, column_renames, row_conditions, select_columns, date_colu
         df = df[select_columns]
         processed_dfs.append(df)
     # Combine the processed DataFrames into a single DataFrame
-    return pd.concat(processed_dfs, ignore_index=True).sort_values(date_column).reset_index(drop=True)
+    combined_df = pd.concat(processed_dfs)
+    print(combined_df.info())
+    return combined_df.sort_values(date_column).reset_index(drop=True)
 
 
 #######################
@@ -55,7 +57,7 @@ for file in sales_files:
     else:
         df["Transaction Time"] = df["Transaction Time"].str.replace("PDT", "")
         df["Datetime"] = pd.to_datetime(df["Transaction Date"] + " " + df["Transaction Time"])
-        df["Datetime"] = df["Datetime"].dt.tz_localize("UTC").dt.tz_convert("America/Los_Angeles")
+        df["Datetime"] = df["Datetime"].dt.tz_localize("America/Los_Angeles").dt.tz_convert("UTC")
     sales_dfs.append(df)
 
 # Columns to be renamed in the DataFrames (old name, new name)
