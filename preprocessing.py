@@ -22,7 +22,7 @@ def preprocessing(dfs, column_renames, row_conditions, select_columns, date_colu
         column_renames: dict with columns to be renamed (key to value)
         row_conditions: dict with conditions on which rows should be selected (key is column and value is target value)
         select_columns: list of columns to include in the output
-        data_column: the name of the column containing date information
+        data_column: the name of the column containing date information (used to sort)
     Returns: A concatenated DataFrame from all the processed DataFrames ordered by date
     """
     processed_dfs = []
@@ -35,11 +35,9 @@ def preprocessing(dfs, column_renames, row_conditions, select_columns, date_colu
                 df = df[df[k] == v]
         # Select columns as difined in select_columns
         df = df[select_columns]
-        # Convert the date_column to the date time object
-        df[date_column] = pd.to_datetime(df[date_column])
         processed_dfs.append(df)
     # Combine the processed DataFrames into a single DataFrame
-    return pd.concat(processed_dfs, ignore_index=True).sort_values([date_column])
+    return pd.concat(processed_dfs, ignore_index=True).sort_values(date_column).reset_index(drop=True)
 
 
 #######################
@@ -47,10 +45,21 @@ def preprocessing(dfs, column_renames, row_conditions, select_columns, date_colu
 #######################
 
 # Read each CSV file into a DataFrame
-sales_dfs = [pd.read_csv(file) for file in sales_files]
+divergent_files = ("sales_202111.csv", "sales_202112.csv")
+sales_dfs = []
+for file in sales_files:
+    df = pd.read_csv(file)
+    if file.endswith(divergent_files):
+        df["Datetime"] = pd.to_datetime(df["Order Charged Timestamp"], unit="s")
+        df["Datetime"] = df["Datetime"].dt.tz_localize("UTC")
+    else:
+        df["Transaction Time"] = df["Transaction Time"].str.replace("PDT", "")
+        df["Datetime"] = pd.to_datetime(df["Transaction Date"] + " " + df["Transaction Time"])
+        df["Datetime"] = df["Datetime"].dt.tz_localize("UTC").dt.tz_convert("America/Los_Angeles")
+    sales_dfs.append(df)
+
 # Columns to be renamed in the DataFrames (old name, new name)
 column_renames = {
-    'Order Charged Date': 'Transaction Date',
     'Product ID': 'Product id',
     'SKU ID': 'Sku Id',
     'Country of Buyer': 'Buyer Country',
@@ -64,14 +73,14 @@ row_conditions = {
 }
 # Columns to select in the DataFrames
 select_columns = [
-    'Transaction Date',
+    'Datetime',
     'Sku Id',
     'Buyer Country',
     'Buyer Postal Code',
     'Amount (Merchant Currency)'
 ]
 # The name of the date column that has to be converted
-date_column = 'Transaction Date'
+date_column = 'Datetime'
 
 # The final processed DataFrame to be used by the dashboard
 sales = preprocessing(sales_dfs, column_renames, row_conditions, select_columns, date_column)
@@ -81,7 +90,8 @@ sales = preprocessing(sales_dfs, column_renames, row_conditions, select_columns,
 #########################
 
 # Read each CSV file into a DataFrame
-crashes_dfs = [pd.read_csv(file, encoding='utf-16') for file in crashes_files]
+crashes_dfs = [pd.read_csv(file, encoding='utf-16', parse_dates=["Date"]) for file in crashes_files]
+
 # Columns to select in the DataFrames
 select_columns = [
     'Date',
@@ -99,7 +109,8 @@ crashes = preprocessing(crashes_dfs, {}, {}, select_columns, date_column)
 #########################
 
 # Read each CSV file into a DataFrame
-ratings_dfs = [pd.read_csv(file, encoding='utf-16') for file in ratings_files]
+ratings_dfs = [pd.read_csv(file, encoding='utf-16', parse_dates=["Date"]) for file in ratings_files]
+
 # Columns to select in the DataFrames
 select_columns = [
     'Date',
