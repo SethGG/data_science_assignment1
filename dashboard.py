@@ -49,11 +49,55 @@ y=[lenpre,lenchar]
 
 fig = figure(x_range=x, title="SKU ID", toolbar_location=None, tools="")
 
-fig.vbar(x=x, bottom=0, top=y, color='blue', width=0.9, legend_label='SKU ID')
+fig.vbar(x=x, bottom=0, top=y, color='blue', width=0.75, legend_label='SKU ID')
 fig.y_range.start = 0
 fig.legend.location = 'top_left'
 
-show(fig)
+def get_uniques(datfram, column, uniques):
+    tmplist=[]
+    #uniques = datfram[str(column)].unique()
+    for x in uniques:
+        #tmplist.append((x,len(datfram[datfram[str(column)].dt.day_name()==str(x)])))
+        tmplist.append(len(datfram[datfram[str(column)].dt.day_name()==str(x)]))
+    return tmplist
+
+countries=[]
+country_list = sales["Buyer Country"].unique()
+for z in country_list:
+    countries.append(len(sales[sales['Buyer Country']==str(z)]))
+print(countries)
+print(country_list)
+select_tools = ['box_select', 'lasso_select', 'poly_select', 'tap', 'reset']
+fig1 = figure(x_range=country_list, title="Sales per country", toolbar_location=None, tools=select_tools)
+
+fig1.vbar(x=country_list, bottom=0, top=countries, color='blue', width=0.9, legend_label='Countries')
+fig1.y_range.start = 0
+fig1.legend.location = 'top_left'
+
+sku_id_countries = gridplot([[fig, fig1]], toolbar_location='right')
+
+time_week = gridplot([[fig, fig1]], toolbar_location='right')
+
+weekday=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+
+sales_weekday=get_uniques(sales,"Transaction Date",weekday)
+print(sales_weekday)
+print(sales["Transaction Date"].dt.day_name())
+#weekdays=
+
+#for z in sales:
+#    
+#    weekdic[z]=weekdic[z]+1
+
+#"Transaction Date"
+
+dayplot = figure(x_range=weekday, title="Sales per country", toolbar_location=None, tools=select_tools)
+
+dayplot.vbar(x=weekday, bottom=0, top=sales_weekday, color='blue', width=0.9, legend_label='Weekdays')
+dayplot.y_range.start = 0
+dayplot.legend.location = 'top_left'
+
+show(column(sku_id_countries,dayplot))
 
 # TO-DO
 
