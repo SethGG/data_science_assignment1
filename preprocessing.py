@@ -67,7 +67,8 @@ select_columns = [
     'Transaction Date',
     'Sku Id',
     'Buyer Country',
-    'Buyer Postal Code'
+    'Buyer Postal Code',
+    'Amount (Merchant Currency)'
 ]
 # The name of the date column that has to be converted
 date_column = 'Transaction Date'
