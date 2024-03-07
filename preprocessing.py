@@ -38,7 +38,6 @@ def preprocessing(dfs, column_renames, row_conditions, select_columns, date_colu
         processed_dfs.append(df)
     # Combine the processed DataFrames into a single DataFrame
     combined_df = pd.concat(processed_dfs)
-    print(combined_df.info())
     return combined_df.sort_values(date_column).reset_index(drop=True)
 
 
