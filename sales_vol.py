@@ -1,5 +1,5 @@
 from preprocessing import sales
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, HoverTool
 from bokeh.io import output_file
 from bokeh.plotting import figure, show
 from bokeh.layouts import column
@@ -40,20 +40,34 @@ fig1 = figure(
     y_axis_label="Transactions",
     tools=["xpan", "reset", "save", "xwheel_zoom"]
 )
-fig1.vbar_stack(stackers=["premium", "unlockcharactermanager"], x="Datetime",
-                source=source, width=(24*60*60*1000)*.9, color=["#718dbf", "#e84d60"])
+
+products = ["premium", "unlockcharactermanager"]
+fig1.vbar_stack(stackers=products,
+                x="Datetime",
+                source=source,
+                width=(24*60*60*1000)*.9,
+                color=["#718dbf", "#e84d60"],
+                legend_label=products)
+fig1.legend.location = "top_left"
+fig1.legend.orientation = "horizontal"
+
+fig1.add_tools(HoverTool(tooltips=[('Date', '@Datetime{%F}'), ('Sku Id', '$name'), ('Transactions', '@$name')],
+                         formatters={'@Datetime': 'datetime'}))
 
 fig2 = figure(
     x_axis_type="datetime",
     height=300,
     width=800,
     x_range=(start_date, end_date),
-    y_range=(0, 100),
+    y_range=(0, 120),
     x_axis_label="Date",
     y_axis_label="Amount",
     tools=["xpan", "reset", "save", "xwheel_zoom"]
 )
 fig2.line(x="Datetime", y="Amount (Merchant Currency)", color="black", source=source)
+
+fig2.add_tools(HoverTool(tooltips=[('Date', '@Datetime{%F}'), ('Amount', '@{Amount (Merchant Currency)}')],
+                         formatters={'@Datetime': 'datetime'}))
 
 grid = column(fig1, fig2)
 fig1.x_range = fig2.x_range
