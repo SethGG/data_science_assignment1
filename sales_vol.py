@@ -1,33 +1,61 @@
 from preprocessing import sales
 from bokeh.models import ColumnDataSource
 from bokeh.io import output_file
-from bokeh.plotting import figure
+from bokeh.plotting import figure, show
+from bokeh.layouts import column
 import pandas as pd
 
 # Sales Volume: Visualize the sales over time (for example, per month or per day) in
 # terms of at least two measures. For example: real money (Amount) and transaction count
 # (row count).
 
-daily_summary = sales.groupby(pd.Grouper(key="Datetime", freq="D"))
+sales_premium = sales[sales["Sku Id"] == "premium"]
+sales_unlock = sales[sales["Sku Id"] == "unlockcharactermanager"]
 
-# daily_summary = sales.groupby("Transaction Date").agg(
-#    {"Amount (Merchant Currency)": "sum", "Transaction Date": "count"})
-# daily_summary.rename(columns={"Amount (Merchant Currency)": "Real Money",
-#                     "Transaction Date": "Transaction Count"}, inplace=True)
-# print(daily_summary)
+daily_grouper = pd.Grouper(key="Datetime", freq="D")
 
-# source = ColumnDataSource(daily_summary)
+daily_premium = sales_premium.groupby(daily_grouper).agg(
+    {"Sku Id": "count"}).rename(columns={"Sku Id": "premium"})
+daily_unlock = sales_unlock.groupby(daily_grouper).agg(
+    {"Sku Id": "count"}).rename(columns={"Sku Id": "unlockcharactermanager"})
+daily_money = sales.groupby(daily_grouper).agg({"Amount (Merchant Currency)": "sum"})
 
-# start_date = daily_summary.index[0]
-# end_date = start_date + pd.DateOffset(days=30)
+daily_summary = daily_money.join([daily_premium, daily_unlock])
+print(daily_summary)
 
-# output_file("vis1.html")
-# fig = figure(
-#    x_axis_type="datetime",
-#    height=300,
-#    width=800,
-#    x_range=(start_date, end_date),
-#    x_axis_label="Date",
-#    y_axis_label="Amount"
-# )
-# fig.vbar(x="Transaction Date", top="Transaction Count", source=source, width=(24*60*60*1000)*.9, color="red")
+source = ColumnDataSource(daily_summary)
+
+start_date = daily_summary.index[0]
+end_date = start_date + pd.DateOffset(days=30)
+
+output_file("vis1.html")
+
+fig1 = figure(
+    x_axis_type="datetime",
+    height=300,
+    width=800,
+    x_range=(start_date, end_date),
+    y_range=(0, 25),
+    x_axis_label="Date",
+    y_axis_label="Transactions",
+    tools=["xpan", "reset", "save", "xwheel_zoom"]
+)
+fig1.vbar_stack(stackers=["premium", "unlockcharactermanager"], x="Datetime",
+                source=source, width=(24*60*60*1000)*.9, color=["#718dbf", "#e84d60"])
+
+fig2 = figure(
+    x_axis_type="datetime",
+    height=300,
+    width=800,
+    x_range=(start_date, end_date),
+    y_range=(0, 100),
+    x_axis_label="Date",
+    y_axis_label="Amount",
+    tools=["xpan", "reset", "save", "xwheel_zoom"]
+)
+fig2.line(x="Datetime", y="Amount (Merchant Currency)", color="black", source=source)
+
+grid = column(fig1, fig2)
+fig1.x_range = fig2.x_range
+
+show(grid)
