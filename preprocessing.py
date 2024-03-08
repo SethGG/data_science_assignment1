@@ -49,7 +49,7 @@ def preprocessing(dfs, column_renames, row_conditions, select_columns, date_colu
 divergent_files = ("sales_202111.csv", "sales_202112.csv")
 sales_dfs = []
 for file in sales_files:
-    df = pd.read_csv(file)
+    df = pd.read_csv(file, thousands=",")
     if file.endswith(divergent_files):
         df["Datetime"] = pd.to_datetime(df["Order Charged Timestamp"], unit="s")
         df["Datetime"] = df["Datetime"].dt.tz_localize("UTC")
