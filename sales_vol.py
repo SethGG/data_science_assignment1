@@ -36,7 +36,7 @@ fig1 = figure(
     y_range=(0, 100),
     x_axis_label="Week",
     y_axis_label="Transactions",
-    tools=["xpan", "reset", "save", "xwheel_zoom"],
+    tools=["save"],
     background_fill_color="#fafafa"
 )
 fig1.xaxis.ticker = FixedTicker(ticks=daily_summary.index.astype(np.int64) // 10**6)
@@ -65,7 +65,7 @@ fig2 = figure(
     y_range=(0, 500),
     x_axis_label="Week",
     y_axis_label="Revenue",
-    tools=["xpan", "reset", "save", "xwheel_zoom"],
+    tools=["reset", "save", "ywheel_zoom", "ypan"],
     background_fill_color="#fafafa"
 )
 fig2.xaxis.ticker = fig1.xaxis.ticker
