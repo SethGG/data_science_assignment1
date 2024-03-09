@@ -11,7 +11,8 @@ import glob
 path = "assignment1 data"
 sales_files = glob.glob(path + "/sales_*.csv")
 crashes_files = glob.glob(path + "/stats_crashes_*_overview.csv")
-ratings_files = glob.glob(path + "/stats_ratings_*_country.csv")
+ratings_country_files = glob.glob(path + "/stats_ratings_*_country.csv")
+ratings_overview_files = glob.glob(path + "/stats_ratings_*_overview.csv")
 
 
 def preprocessing(dfs, column_renames, row_conditions, select_columns, date_column):
@@ -110,7 +111,7 @@ crashes = preprocessing(crashes_dfs, {}, {}, select_columns, date_column)
 #########################
 
 # Read each CSV file into a DataFrame
-ratings_dfs = [pd.read_csv(file, encoding='utf-16', parse_dates=["Date"]) for file in ratings_files]
+ratings_country_dfs = [pd.read_csv(file, encoding='utf-16', parse_dates=["Date"]) for file in ratings_country_files]
 
 # Columns to select in the DataFrames
 select_columns = [
@@ -123,4 +124,21 @@ select_columns = [
 date_column = 'Date'
 
 # The final processed DataFrame to be used by the dashboard
-ratings = preprocessing(ratings_dfs, {}, {}, select_columns, date_column)
+ratings_country = preprocessing(ratings_country_dfs, {}, {}, select_columns, date_column)
+
+#########################################################################################
+
+# Read each CSV file into a DataFrame
+ratings_overview_dfs = [pd.read_csv(file, encoding='utf-16', parse_dates=["Date"]) for file in ratings_overview_files]
+
+# Columns to select in the DataFrames
+select_columns = [
+    'Date',
+    'Daily Average Rating',
+    'Total Average Rating'
+]
+# The name of the date column that has to be converted
+date_column = 'Date'
+
+# The final processed DataFrame to be used by the dashboard
+ratings_overview = preprocessing(ratings_overview_dfs, {}, {}, select_columns, date_column)
