@@ -41,6 +41,7 @@ source = ColumnDataSource(daily_overview)
 output_file("vis3.html")
 
 fig1 = figure(
+    title="Weekly Ratings vs Stability",
     height=500,
     width=800,
     x_axis_label="Average Daily Crashes",
@@ -55,7 +56,7 @@ labels = LabelSet(x="Daily Crashes", y="Daily Average Rating", text="Week", y_of
                   source=source, text_align='center')
 fig1.add_layout(labels)
 
-color_bar = s.construct_color_bar(width=10)
+color_bar = s.construct_color_bar(width=10, title="Satisfaction Index")
 fig1.add_layout(color_bar, 'right')
 
 fig2 = figure(
