@@ -1,9 +1,9 @@
 from preprocessing import crashes, ratings_overview
-from bokeh.models import ColumnDataSource, HoverTool, FixedTicker, DatetimeTickFormatter, PrintfTickFormatter, LabelSet
+from bokeh.models import ColumnDataSource, HoverTool, FixedTicker, DatetimeTickFormatter, PrintfTickFormatter, LabelSet, Title, TextAnnotation
 from bokeh.palettes import YlGn8
 from bokeh.io import output_file
 from bokeh.plotting import figure, show
-from bokeh.layouts import column
+from bokeh.layouts import column, row
 from bokeh.transform import linear_cmap
 import pandas as pd
 import numpy as np
@@ -19,20 +19,25 @@ import numpy as np
 daily_grouper = pd.Grouper(key="Date", freq="W-MON")
 
 daily_crashes = crashes.groupby(daily_grouper).mean("Daily Crashes")
-daily_ratings = ratings_overview.groupby(daily_grouper).mean("Daily Average Rating")
+daily_ratings = ratings_overview.groupby(daily_grouper).agg(
+    {"Daily Average Rating": "mean", "Total Average Rating": "mean"})
 
 daily_overview = daily_crashes.join(daily_ratings)
 
 c = daily_overview["Crashes Norm"] = 1 - daily_overview["Daily Crashes"] / 100
 r = daily_overview["Rating Norm"] = daily_overview["Daily Average Rating"] / 5
+r_fill = daily_overview["Rating Norm (fill)"] = r.fillna(daily_overview["Total Average Rating"] / 5)
 
 # (c - (0.5 - r) * (c + r) / (1 + c + r)) * (3 / 4)
 
 daily_overview["Satisfaction Index"] = (c - (0.5 - r) * (c + r) / (1 + c + r)) * (3 / 4)
+daily_overview["Satisfaction Index (fill)"] = daily_overview["Satisfaction Index"].fillna(
+    (c - (0.5 - r_fill) * (c + r_fill) / (1 + c + r_fill)) * (3 / 4))
+daily_overview["Daily Average Rating"] = daily_overview["Daily Average Rating"].fillna(0)
 
 # colors_idx = [int(x*10) for x in daily_overview["Satisfaction Index"].fillna(0)]
 # daily_overview["Colors"] = [Spectral10[i] for i in colors_idx]
-cmap = linear_cmap(field_name="Satisfaction Index", palette=YlGn8[::-1], low=0.2, high=1)
+cmap = linear_cmap(field_name="Satisfaction Index", palette=YlGn8[::-1], low=0.2, high=1, nan_color="silver")
 
 daily_overview["Week"] = daily_overview.index.strftime("W%U")
 
@@ -42,7 +47,7 @@ output_file("vis3.html")
 
 fig1 = figure(
     title="Weekly Ratings vs Stability",
-    height=500,
+    height=600,
     width=800,
     x_axis_label="Average Daily Crashes",
     y_axis_label="Weekly Average Rating",
@@ -59,14 +64,49 @@ fig1.add_layout(labels)
 color_bar = s.construct_color_bar(width=10, title="Satisfaction Index")
 fig1.add_layout(color_bar, 'right')
 
+
 fig2 = figure(
-    height=300,
+    title="Weekly Satisfaction Index",
+    height=500,
     width=800,
+    x_axis_label="Week",
+    y_axis_label="Index Score"
 )
 
-fig2.scatter(x="Date", y="Rating Norm", source=source, color="green", legend_label="Rating Norm", size=10)
-fig2.line(x="Date", y="Crashes Norm", source=source, color="red", legend_label="Crashes Norm")
-fig2.scatter(x="Date", y="Satisfaction Index", source=source, color="blue", legend_label="Satisfaction Index", size=10)
+fig2.add_layout(
+    Title(text=r"\[\text{Crash Index}: c = 1 - \frac{\text{Daily Crashes}}{100}\]", text_font_style="italic", standoff=0), 'below')
+fig2.add_layout(
+    Title(text=r"\[\text{Rating Index}: r = \frac{\text{Daily Average Rating}}{5}\]", text_font_style="italic", standoff=0), 'below')
+fig2.add_layout(
+    Title(text=r"\[\text{Satisfaction Index}: s = c - (0.5 - r) * \frac{3 * (c + r)}{4 * (1 + c + r)}\]", text_font_style="italic", standoff=0), 'below')
 
-grid = column(fig1, fig2)
+
+# fig2.scatter(x="Date", y="Rating Norm", source=source, color="green", legend_label="Rating Norm", size=10)
+# fig2.line(x="Date", y="Crashes Norm", source=source, color="red", legend_label="Crashes Norm")
+fig2.x(x="Date",
+       y="Crashes Norm",
+       source=source,
+       size=10,
+       color="red",
+       legend_label="Crash Index")
+fig2.x(x="Date",
+       y="Rating Norm (fill)",
+       source=source,
+       size=10,
+       color="blue",
+       legend_label="Rating Index")
+fig2.line(x="Date",
+          y="Satisfaction Index (fill)",
+          source=source, color="black")
+fig2.circle(x="Date",
+            y="Satisfaction Index (fill)",
+            source=source,
+            color=cmap,
+            size=10)
+
+
+fig2.xaxis.ticker = FixedTicker(ticks=daily_overview.index.astype(np.int64) // 10**6)
+fig2.xaxis.formatter = DatetimeTickFormatter(days="%U")
+
+grid = row(fig1, fig2)
 show(grid)
