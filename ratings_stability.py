@@ -22,6 +22,8 @@ daily_ratings = ratings_overview.groupby(daily_grouper).agg(
     {"Daily Average Rating": "mean", "Total Average Rating": "mean"})
 
 daily_overview = daily_crashes.join(daily_ratings)
+daily_overview.index = daily_overview.index - pd.Timedelta(weeks=1)
+
 
 c = daily_overview["Crashes Norm"] = 1 - daily_overview["Daily Crashes"] / 100
 r = daily_overview["Rating Norm"] = daily_overview["Daily Average Rating"].fillna(
@@ -41,8 +43,8 @@ source = ColumnDataSource(daily_overview)
 output_file("vis3.html")
 
 fig1 = figure(
-    title="Weekly Ratings vs Stability",
-    height=500,
+    title="Weekly Ratings and Crashes",
+    height=650,
     width=800,
     x_axis_label="Average Daily Crashes",
     y_axis_label="Weekly Average Rating",
@@ -112,6 +114,3 @@ fig2.xaxis.formatter = DatetimeTickFormatter(days="%U")
 
 tap = TapTool(renderers=[sglyph])
 fig2.add_tools(tap)
-
-grid = column(fig1, fig2)
-show(grid)

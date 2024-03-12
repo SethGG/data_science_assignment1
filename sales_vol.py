@@ -23,7 +23,6 @@ daily_money = sales.groupby(daily_grouper).agg({"Amount (Merchant Currency)": "s
 
 daily_summary = daily_money.join([daily_premium, daily_unlock])
 daily_summary.index = daily_summary.index - pd.Timedelta(weeks=1)
-print(daily_summary)
 
 source = ColumnDataSource(daily_summary)
 
@@ -31,7 +30,7 @@ output_file("vis1.html")
 
 fig1 = figure(
     title="Weekly Transactions",
-    height=300,
+    height=400,
     width=800,
     y_range=(0, 100),
     x_axis_label="Week",
@@ -60,7 +59,7 @@ fig1.add_tools(HoverTool(tooltips=[('Date', '@Datetime{%Y-W%U}'), ('Sku Id', '$n
 
 fig2 = figure(
     title="Weekly Revenue",
-    height=300,
+    height=400,
     width=800,
     y_range=(0, 500),
     x_axis_label="Week",
@@ -77,8 +76,4 @@ fig2.line(x="Datetime", y="Amount (Merchant Currency)", color="black", source=so
 
 fig2.add_tools(HoverTool(tooltips=[('Date', '@Datetime{%Y-W%U}'), ('Revenue', '@{Amount (Merchant Currency)}')],
                          formatters={'@Datetime': 'datetime'}))
-
-grid = column(fig1, fig2)
 fig1.x_range = fig2.x_range
-
-show(grid)
