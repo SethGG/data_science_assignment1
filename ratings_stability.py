@@ -1,5 +1,5 @@
 from preprocessing import crashes, ratings_overview
-from bokeh.models import ColumnDataSource, HoverTool, FixedTicker, DatetimeTickFormatter, PrintfTickFormatter, LabelSet, Title, TextAnnotation
+from bokeh.models import ColumnDataSource, HoverTool, FixedTicker, DatetimeTickFormatter, PrintfTickFormatter, LabelSet, Title, TextAnnotation, TapTool
 from bokeh.palettes import YlGn8
 from bokeh.io import output_file
 from bokeh.plotting import figure, show
@@ -73,7 +73,7 @@ fig2 = figure(
     width=800,
     x_axis_label="Week",
     y_axis_label="Index Score",
-    tools=["tap", "pan", "reset"]
+    tools=["pan", "reset"]
 )
 
 fig2.add_layout(
@@ -100,15 +100,18 @@ fig2.x(x="Date",
 fig2.line(x="Date",
           y="Satisfaction Index",
           source=source, color="black")
-fig2.circle(x="Date",
-            y="Satisfaction Index",
-            source=source,
-            color=cmap,
-            size=10)
+sglyph = fig2.circle(x="Date",
+                     y="Satisfaction Index",
+                     source=source,
+                     color=cmap,
+                     size=10)
 
 
 fig2.xaxis.ticker = FixedTicker(ticks=daily_overview.index.astype(np.int64) // 10**6)
 fig2.xaxis.formatter = DatetimeTickFormatter(days="%U")
+
+tap = TapTool(renderers=[sglyph])
+fig2.add_tools(tap)
 
 grid = column(fig1, fig2)
 show(grid)
