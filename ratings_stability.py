@@ -63,6 +63,7 @@ color_bar = s.construct_color_bar(width=10, title="Satisfaction Index")
 fig1.add_layout(color_bar, 'right')
 
 fig1.add_tools(HoverTool(tooltips=[('Date', '@Date{%Y-W%U}'),
+                                   ('Total Average Rating', '@{Total Average Rating}'),
                                    ('Daily Average Rating', '@{Daily Average Rating}'),
                                    ('Daily Crashes', '@{Daily Crashes}'),
                                    ('Satisfaction Index', '@{Satisfaction Index}')],
