@@ -32,8 +32,6 @@ r = daily_overview["Rating Norm"] = daily_overview["Daily Average Rating"].filln
 daily_overview["Satisfaction Index"] = (c - (0.5 - r) * (c + r) / (1 + c + r))*(3/4)
 daily_overview["Daily Average Rating"] = daily_overview["Daily Average Rating"].fillna(0)
 
-# colors_idx = [int(x*10) for x in daily_overview["Satisfaction Index"].fillna(0)]
-# daily_overview["Colors"] = [Spectral10[i] for i in colors_idx]
 cmap = linear_cmap(field_name="Satisfaction Index", palette=YlGn8[::-1], low=0.2, high=1)
 
 daily_overview["Week"] = daily_overview.index.strftime("W%U")
@@ -44,11 +42,12 @@ output_file("vis3.html")
 
 fig1 = figure(
     title="Weekly Ratings vs Stability",
-    height=600,
+    height=500,
     width=800,
     x_axis_label="Average Daily Crashes",
     y_axis_label="Weekly Average Rating",
-    background_fill_color="#fafafa"
+    background_fill_color="#fafafa",
+    tools=["pan", "wheel_zoom", "reset", "save", "tap"]
 )
 
 s = fig1.scatter(x="Daily Crashes", y="Daily Average Rating", size=10, source=source, color=cmap)
@@ -61,21 +60,30 @@ fig1.add_layout(labels)
 color_bar = s.construct_color_bar(width=10, title="Satisfaction Index")
 fig1.add_layout(color_bar, 'right')
 
+fig1.add_tools(HoverTool(tooltips=[('Date', '@Date{%Y-W%U}'),
+                                   ('Daily Average Rating', '@{Daily Average Rating}'),
+                                   ('Daily Crashes', '@{Daily Crashes}'),
+                                   ('Satisfaction Index', '@{Satisfaction Index}')],
+                         formatters={'@Date': 'datetime'}))
+
 
 fig2 = figure(
     title="Weekly Satisfaction Index",
     height=500,
     width=800,
     x_axis_label="Week",
-    y_axis_label="Index Score"
+    y_axis_label="Index Score",
+    tools=["tap", "pan", "reset"]
 )
 
 fig2.add_layout(
-    Title(text=r"\[\text{Crash Index}: c = 1 - \frac{\text{Daily Crashes}}{100}\]", text_font_style="italic", standoff=0), 'below')
+    Title(text=r"\[\text{Crash Index}: c = 1 - \frac{\text{Daily Crashes}}{100}\]", text_font_style="italic", standoff=5), 'below')
 fig2.add_layout(
-    Title(text=r"\[\text{Rating Index}: r = \frac{\text{Daily Average Rating}}{5}\]", text_font_style="italic", standoff=0), 'below')
+    Title(text=r"\[\text{Rating Index}: r = \frac{\text{Daily Average Rating*}}{5}\]", text_font_style="italic", standoff=5), 'below')
 fig2.add_layout(
-    Title(text=r"\[\text{Satisfaction Index}: s = \frac{3}{4}(c - \frac{(0.5 - r)(c + r)}{1 + c + r})\]", text_font_style="italic", standoff=0), 'below')
+    Title(text=r"\[\text{* Total Average Rating for weeks without ratings.}\]", text_font_style="italic", text_font_size="10px", standoff=0), 'below')
+fig2.add_layout(
+    Title(text=r"\[\text{Satisfaction Index}: s = \frac{3}{4}(c - \frac{(0.5 - r)(c + r)}{1 + c + r})\]", text_font_style="italic", standoff=5), 'below')
 
 fig2.x(x="Date",
        y="Crashes Norm",
@@ -83,20 +91,12 @@ fig2.x(x="Date",
        size=10,
        color="red",
        legend_label="Crash Index")
-review_source = ColumnDataSource(daily_overview[daily_overview["Daily Average Rating"] > 0])
 fig2.x(x="Date",
        y="Rating Norm",
-       source=review_source,
+       source=source,
        size=10,
        color="blue",
-       legend_label="Rating Index (Using Daily Average)")
-review_source_nan = ColumnDataSource(daily_overview[daily_overview["Daily Average Rating"] == 0])
-fig2.x(x="Date",
-       y="Rating Norm",
-       source=review_source_nan,
-       size=10,
-       color="grey",
-       legend_label="Rating Index (Using Total Average)")
+       legend_label="Rating Index")
 fig2.line(x="Date",
           y="Satisfaction Index",
           source=source, color="black")
@@ -110,5 +110,5 @@ fig2.circle(x="Date",
 fig2.xaxis.ticker = FixedTicker(ticks=daily_overview.index.astype(np.int64) // 10**6)
 fig2.xaxis.formatter = DatetimeTickFormatter(days="%U")
 
-grid = row(fig1, fig2)
+grid = column(fig1, fig2)
 show(grid)
