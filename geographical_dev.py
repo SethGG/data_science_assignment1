@@ -70,6 +70,7 @@ for month in monthly_summary.index.get_level_values("Date").unique():
 for fig in figs:
     fig.x_range = figs[0].x_range
     fig.y_range = figs[0].y_range
+    fig.tools = figs[0].tools
 
 
 output_file("vis4.html")
