@@ -3,7 +3,7 @@ import ratings_stability
 from bokeh.layouts import column, row
 from bokeh.io import output_file
 from bokeh.plotting import show
-from bokeh.models import Div, GlobalImportedStyleSheet, ImportedStyleSheet
+from bokeh.models import Div, ImportedStyleSheet
 
 output_file("index.html")
 

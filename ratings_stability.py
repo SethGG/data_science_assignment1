@@ -15,30 +15,30 @@ import numpy as np
 # correlation with the daily average rating.
 
 
-daily_grouper = pd.Grouper(key="Date", freq="W-MON")
+weekly_grouper = pd.Grouper(key="Date", freq="W-MON")
 
-daily_crashes = crashes.groupby(daily_grouper).mean("Daily Crashes")
-daily_ratings = ratings_overview.groupby(daily_grouper).agg(
+weekly_crashes = crashes.groupby(weekly_grouper).mean("Daily Crashes")
+weekly_ratings = ratings_overview.groupby(weekly_grouper).agg(
     {"Daily Average Rating": "mean", "Total Average Rating": "mean"})
 
-daily_overview = daily_crashes.join(daily_ratings)
-daily_overview.index = daily_overview.index - pd.Timedelta(weeks=1)
+weekly_summary = weekly_crashes.join(weekly_ratings)
+weekly_summary.index = weekly_summary.index - pd.Timedelta(weeks=1)
 
 
-c = daily_overview["Crashes Norm"] = 1 - daily_overview["Daily Crashes"] / 100
-r = daily_overview["Rating Norm"] = daily_overview["Daily Average Rating"].fillna(
-    daily_overview["Total Average Rating"]) / 5
+c = weekly_summary["Crashes Norm"] = 1 - weekly_summary["Daily Crashes"] / 100
+r = weekly_summary["Rating Norm"] = weekly_summary["Daily Average Rating"].fillna(
+    weekly_summary["Total Average Rating"]) / 5
 
 # (c - (0.5 - r) * (c + r) / (1 + c + r)) * (3 / 4)
 
-daily_overview["Satisfaction Index"] = (c - (0.5 - r) * (c + r) / (1 + c + r))*(3/4)
-daily_overview["Daily Average Rating"] = daily_overview["Daily Average Rating"].fillna(0)
+weekly_summary["Satisfaction Index"] = (c - (0.5 - r) * (c + r) / (1 + c + r))*(3/4)
+weekly_summary["Daily Average Rating"] = weekly_summary["Daily Average Rating"].fillna(0)
 
 cmap = linear_cmap(field_name="Satisfaction Index", palette=YlGn8[::-1], low=0.2, high=1)
 
-daily_overview["Week"] = daily_overview.index.strftime("W%U")
+weekly_summary["Week"] = weekly_summary.index.strftime("W%U")
 
-source = ColumnDataSource(daily_overview)
+source = ColumnDataSource(weekly_summary)
 
 output_file("vis3.html")
 
@@ -110,7 +110,7 @@ sglyph = fig2.circle(x="Date",
                      size=10)
 
 
-fig2.xaxis.ticker = FixedTicker(ticks=daily_overview.index.astype(np.int64) // 10**6)
+fig2.xaxis.ticker = FixedTicker(ticks=weekly_summary.index.astype(np.int64) // 10**6)
 fig2.xaxis.formatter = DatetimeTickFormatter(days="%U")
 
 tap = TapTool(renderers=[sglyph])

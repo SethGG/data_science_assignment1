@@ -13,18 +13,18 @@ import numpy as np
 sales_premium = sales[sales["Sku Id"] == "premium"]
 sales_unlock = sales[sales["Sku Id"] == "unlockcharactermanager"]
 
-daily_grouper = pd.Grouper(key="Datetime", freq="w-MON")
+weekly_grouper = pd.Grouper(key="Datetime", freq="w-MON")
 
-daily_premium = sales_premium.groupby(daily_grouper).agg(
+weekly_premium = sales_premium.groupby(weekly_grouper).agg(
     {"Sku Id": "count"}).rename(columns={"Sku Id": "premium"})
-daily_unlock = sales_unlock.groupby(daily_grouper).agg(
+weekly_unlock = sales_unlock.groupby(weekly_grouper).agg(
     {"Sku Id": "count"}).rename(columns={"Sku Id": "unlockcharactermanager"})
-daily_money = sales.groupby(daily_grouper).agg({"Amount (Merchant Currency)": "sum"})
+weekly_money = sales.groupby(weekly_grouper).agg({"Amount (Merchant Currency)": "sum"})
 
-daily_summary = daily_money.join([daily_premium, daily_unlock])
-daily_summary.index = daily_summary.index - pd.Timedelta(weeks=1)
+weekly_summary = weekly_money.join([weekly_premium, weekly_unlock])
+weekly_summary.index = weekly_summary.index - pd.Timedelta(weeks=1)
 
-source = ColumnDataSource(daily_summary)
+source = ColumnDataSource(weekly_summary)
 
 output_file("vis1.html")
 
@@ -38,7 +38,7 @@ fig1 = figure(
     tools=["save"],
     background_fill_color="#fafafa"
 )
-fig1.xaxis.ticker = FixedTicker(ticks=daily_summary.index.astype(np.int64) // 10**6)
+fig1.xaxis.ticker = FixedTicker(ticks=weekly_summary.index.astype(np.int64) // 10**6)
 fig1.xaxis.formatter = DatetimeTickFormatter(days="%U")
 
 products = ["premium", "unlockcharactermanager"]
