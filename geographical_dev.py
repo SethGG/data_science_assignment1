@@ -47,8 +47,8 @@ def monthly_figure(title, monthly_summary, month, attribute, palette, low, high,
 
     fig = figure(
         title=title,
-        height=500,
-        width=1000,
+        height=600,
+        width=1200,
         toolbar_location="right",
         tools=["wheel_zoom", "pan", "reset"],
         background_fill_color="#fafafa"

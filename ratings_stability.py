@@ -1,6 +1,6 @@
 from preprocessing import crashes, ratings_overview
 from bokeh.models import ColumnDataSource, HoverTool, FixedTicker, DatetimeTickFormatter, LabelSet, Title, TapTool
-from bokeh.palettes import YlGn8
+from bokeh.palettes import YlGn9
 from bokeh.io import output_file
 from bokeh.plotting import figure
 from bokeh.transform import linear_cmap
@@ -28,12 +28,12 @@ c = weekly_summary["Crashes Norm"] = 1 - weekly_summary["Daily Crashes"] / 100
 r = weekly_summary["Rating Norm"] = weekly_summary["Daily Average Rating"].fillna(
     weekly_summary["Total Average Rating"]) / 5
 
-# (c - (0.5 - r) * (c + r) / (1 + c + r)) * (3 / 4)
+# (c - (0.5 - r) * (c + r) / (1 + c + r))
 
-weekly_summary["Satisfaction Index"] = (c - (0.5 - r) * (c + r) / (1 + c + r))*(3/4)
+weekly_summary["Satisfaction Index"] = (c - (0.5 - r) * (c + r) / (1 + c + r))
 weekly_summary["Daily Average Rating"] = weekly_summary["Daily Average Rating"].fillna(0)
 
-cmap = linear_cmap(field_name="Satisfaction Index", palette=YlGn8[::-1], low=0.2, high=1)
+cmap = linear_cmap(field_name="Satisfaction Index", palette=YlGn9[::-1], low=0.4, high=1.3)
 
 weekly_summary["Week"] = weekly_summary.index.strftime("W%U")
 
@@ -88,7 +88,7 @@ fig2.add_layout(
     Title(text=r"\[\text{* Total Average Rating for weeks without ratings.}\]",
           text_font_style="italic", text_font_size="10px", standoff=0), 'below')
 fig2.add_layout(
-    Title(text=r"\[\text{Satisfaction Index}: s = \frac{3}{4}(c - \frac{(0.5 - r)(c + r)}{1 + c + r})\]",
+    Title(text=r"\[\text{Satisfaction Index}: s = c - \frac{(0.5 - r)(c + r)}{1 + c + r}\]",
           text_font_style="italic", standoff=5), 'below')
 
 fig2.x(x="Date",
