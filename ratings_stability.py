@@ -116,5 +116,12 @@ sglyph = fig2.circle(x="Date",
 fig2.xaxis.ticker = FixedTicker(ticks=weekly_summary.index.astype(np.int64) // 10**6)
 fig2.xaxis.formatter = DatetimeTickFormatter(days="%U")
 
+fig2.add_tools(HoverTool(tooltips=[('Date', '@Date{%Y-W%U}'),
+                                   ('Crash Index', '@{Crashes Norm}'),
+                                   ('Rating Index', '@{Rating Norm}'),
+                                   ('Satisfaction Index', '@{Satisfaction Index}')],
+                         formatters={'@Date': 'datetime'},
+                         renderers=[sglyph]))
+
 tap = TapTool(renderers=[sglyph])
 fig2.add_tools(tap)
