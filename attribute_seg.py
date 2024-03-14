@@ -1,9 +1,9 @@
 from preprocessing import sales, crashes#, ratings
 from bokeh.io import output_file
 from bokeh.plotting import figure, show, save
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, Range1d, Plot, AnnularWedge, Legend, LegendItem, HoverTool, TapTool
 from bokeh.layouts import row, column, gridplot
-from bokeh.palettes import Category20c, viridis, linear_palette
+from bokeh.palettes import Category20c, viridis, linear_palette, Turbo256
 from math import pi
 from bokeh.transform import cumsum
 import pandas as pd
@@ -12,92 +12,82 @@ import pandas as pd
 # attribute: at least the SKU id (in-app purchase option) attribute should be included, but you
 # can also think of the day of the week, time of the day or the country of the customer.
 
-#output_file(filename="test.html")
-print(sales)
-print(crashes)
-
-lenpre = len(sales[sales['Sku Id'] == 'premium'])
-lenchar = len(sales[sales['Sku Id'] == 'unlockcharactermanager'])
-# lencountry = len(sales[sales['Sku Id']==''])
-x = ['premium', 'unlockcharactermanager']
-y = [lenpre, lenchar]
-
-fig = figure(x_range=x, title="Total sales by SKU ID", toolbar_location=None, tools="")
-
-fig.vbar(x=x, bottom=0, top=y, color='blue', width=0.75, legend_label='SKU ID')
-fig.y_range.start = 0
-fig.legend.location = 'top_left'
-
-
 def get_uniques(datfram, column, uniques):
     tmplist = []
     for x in uniques:
         tmplist.append(len(datfram[datfram[str(column)].dt.day_name() == str(x)]))
     return tmplist
 
-print(sales)
+select_tools = ['tap','box_select','reset','save']
+lenpre = len(sales[sales['Sku Id'] == 'premium'])
+lenchar = len(sales[sales['Sku Id'] == 'unlockcharactermanager'])
+x = ['premium', 'unlockcharactermanager']
+y = [lenpre, lenchar]
 
-countries = []
-country_list = sales["Buyer Country"].unique()
-for z in country_list:
-    countries.append(len(sales[sales['Buyer Country'] == str(z)]))
-#print(countries)
-print(type(countries))
-print(type(country_list))
-#print(country_list)
-country_list1 = country_list.tolist()
-country_dic = dict(zip(country_list, countries))
-select_tools = ['box_select', 'lasso_select', 'poly_select', 'tap', 'reset']
-sorted_countries_sales = sorted(country_list, key=lambda x: countries[country_list1.index(x)])
-fig1 = figure(x_range=sorted_countries_sales, title="Sales per country", toolbar_location=None, tools=select_tools)
+fig = figure(x_range=x, title="Total sales by SKU ID", toolbar_location=None, tools=select_tools,x_axis_label="SKU ID",
+    y_axis_label="Transactions", background_fill_color="#fafafa")
 
-fig1.vbar(x=country_list, bottom=0, top=countries, color='blue', width=0.9, legend_label='Countries')
-fig1.y_range.start = 0
-fig1.legend.location = 'top_left'
+fig.vbar(x=x, bottom=0, top=y, width=0.75, color=["#718dbf", "#e84d60"])
+fig.y_range.start = 0
 
-sku_id_countries = gridplot([[fig, fig1]], toolbar_location='right')
+colors = {
+    'premium' :"#718dbf",
+    'unlockcharactermanager' : "#e84d60"
+}
 
-time_week = gridplot([[fig, fig1]], toolbar_location='right')
+xdr = Range1d(start=-2, end=2)
+ydr = Range1d(start=-2, end=2)
+
+donut = Plot(x_range=xdr, y_range=ydr, background_fill_color="#fafafa")
+donut.title.text = "Total sales by SKU ID"
+aggregated = sales.groupby("Sku Id").size().to_frame("count1")
+#print(aggregated)
+aggregated['proportion'] = aggregated['count1']/aggregated['count1'].sum()
+selected = aggregated[aggregated.proportion >= 0].copy()
+sku_id = selected.index.tolist()
+angles = selected.proportion.map(lambda x: 2*pi*(x)).cumsum().tolist()
+
+skuid_source = ColumnDataSource(dict(
+    start  = [0] + angles[:-1],
+    end    = angles,
+    colors = [colors[skuid] for skuid in x],
+    proportion = aggregated['proportion'],
+    count1 = aggregated['count1'],
+    skuid = aggregated.index
+))
+
+glyph = AnnularWedge(x=0, y=0, inner_radius=0.9, outer_radius=1.75,
+                     start_angle="start", end_angle="end",
+                     line_color="white", line_width=3, fill_color="colors")
+r= donut.add_glyph(skuid_source, glyph)
+
+legend = Legend(location="center")
+for i, name in enumerate(colors):
+    legend.items.append(LegendItem(label=name, renderers=[r], index=i))
+donut.add_layout(legend, "center")
+donut.add_tools(HoverTool(tooltips=[('Sku ID','@skuid'),('Sales', '@count1'),('Proportion', '@proportion{00.0%}')]))
+donut.add_tools(TapTool())
 
 weekday = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-print(sales)
+#print(sales)
 sales_weekday = get_uniques(sales, "Datetime", weekday)
-print(sales_weekday)
-print(sales["Datetime"].dt.day_name())
+#print(sales_weekday)
+#print(sales["Datetime"].dt.day_name())
 
+dayplot = figure(x_range=weekday, title="Sales per weekday", toolbar_location=None, tools=select_tools,x_axis_label="Weekday",
+    y_axis_label="Transactions", background_fill_color="#fafafa")
 
-# weekdays=
-
-# for z in sales:
-#
-#    weekdic[z]=weekdic[z]+1
-
-# "Transaction Date"
-
-dayplot = figure(x_range=weekday, title="Sales per weekday", toolbar_location=None, tools=select_tools)
-
-dayplot.vbar(x=weekday, bottom=0, top=sales_weekday, color='blue', width=0.9, legend_label='Weekdays')
+dayplot.vbar(x=weekday, bottom=0, top=sales_weekday, color='blue', width=0.9)#, legend_label='Weekdays')
 dayplot.y_range.start = 0
-dayplot.legend.location = 'top_left'
+#dayplot.legend.location = 'top_left'
 
-pie_data=pd.Series(country_dic).reset_index(name='value').rename(columns={'index':'country'})
-pie_data['angle'] = pie_data['value']/pie_data['value'].sum() *2*pi
-pie_data['color'] = linear_palette(viridis, len(country_dic))
-
-pie = figure(title="Premium vs Unblock character manager", toolbar_location=None, tools="hover", tooltips="@country: @value", x_range=(-0.5, 1.0))
-
-pie.wedge(x=0,y=1, radius=0.4, start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'), line_color="white", fill_color='color', legend_field='country', source=pie_data)
-
-
-pie.axis.axis_label=None
-pie.axis.visible=False
-pie.grid.grid_line_color=None
-
-group2 = gridplot([[dayplot, pie]], toolbar_location='right')
-fig3 = column(sku_id_countries, group2)
 #fig3 = column(sku_id_countries, dayplot)
 
 #save(fig3)
-show(fig3)
-#show(column(sku_id_countries, dayplot))
+#fig4 = gridplot([[fig, dayplot]], toolbar_location='right')
+#show(fig4)
+fig5 = gridplot([[donut,fig]],toolbar_location='right')
+#show(column(fig5,dayplot))
+fig3 = column(fig5,dayplot)
+
