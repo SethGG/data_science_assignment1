@@ -1,5 +1,6 @@
 import sales_vol
 import ratings_stability
+import geographical_dev
 from bokeh.layouts import column, row
 from bokeh.io import output_file
 from bokeh.plotting import show
@@ -33,5 +34,17 @@ title = Div(text=html, stylesheets=[stylesheet])
 
 rating_layout = column(title, row(ratings_stability.fig1, ratings_stability.fig2))
 
-dashboard = column(sales_layout, rating_layout)
+html = """
+<section class="section">
+  <h1 class="title">Geographical Development</h1>
+  <h2 class="subtitle">
+    Here we can view the sales volume and ratings per country in a geographical setting.
+  </h2>
+</section>
+"""
+title = Div(text=html, stylesheets=[stylesheet])
+
+geo_layout = column(title, geographical_dev.fig)
+
+dashboard = column(sales_layout, rating_layout, geo_layout)
 show(dashboard)

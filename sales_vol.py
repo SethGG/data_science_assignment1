@@ -1,8 +1,7 @@
 from preprocessing import sales
 from bokeh.models import ColumnDataSource, HoverTool, FixedTicker, DatetimeTickFormatter, PrintfTickFormatter
 from bokeh.io import output_file
-from bokeh.plotting import figure, show
-from bokeh.layouts import column
+from bokeh.plotting import figure
 import pandas as pd
 import numpy as np
 

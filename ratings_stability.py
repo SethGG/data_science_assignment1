@@ -1,9 +1,8 @@
 from preprocessing import crashes, ratings_overview
-from bokeh.models import ColumnDataSource, HoverTool, FixedTicker, DatetimeTickFormatter, PrintfTickFormatter, LabelSet, Title, TextAnnotation, TapTool
+from bokeh.models import ColumnDataSource, HoverTool, FixedTicker, DatetimeTickFormatter, LabelSet, Title, TapTool
 from bokeh.palettes import YlGn8
 from bokeh.io import output_file
-from bokeh.plotting import figure, show
-from bokeh.layouts import column, row
+from bokeh.plotting import figure
 from bokeh.transform import linear_cmap
 import pandas as pd
 import numpy as np
@@ -44,7 +43,7 @@ output_file("vis3.html")
 
 fig1 = figure(
     title="Weekly Ratings and Crashes",
-    height=650,
+    height=600,
     width=800,
     x_axis_label="Average Daily Crashes",
     y_axis_label="Weekly Average Rating",
@@ -80,13 +79,17 @@ fig2 = figure(
 )
 
 fig2.add_layout(
-    Title(text=r"\[\text{Crash Index}: c = 1 - \frac{\text{Daily Crashes}}{100}\]", text_font_style="italic", standoff=5), 'below')
+    Title(text=r"\[\text{Crash Index}: c = 1 - \frac{\text{Daily Crashes}}{100}\]",
+          text_font_style="italic", standoff=5), 'below')
 fig2.add_layout(
-    Title(text=r"\[\text{Rating Index}: r = \frac{\text{Daily Average Rating*}}{5}\]", text_font_style="italic", standoff=5), 'below')
+    Title(text=r"\[\text{Rating Index}: r = \frac{\text{Daily Average Rating*}}{5}\]",
+          text_font_style="italic", standoff=5), 'below')
 fig2.add_layout(
-    Title(text=r"\[\text{* Total Average Rating for weeks without ratings.}\]", text_font_style="italic", text_font_size="10px", standoff=0), 'below')
+    Title(text=r"\[\text{* Total Average Rating for weeks without ratings.}\]",
+          text_font_style="italic", text_font_size="10px", standoff=0), 'below')
 fig2.add_layout(
-    Title(text=r"\[\text{Satisfaction Index}: s = \frac{3}{4}(c - \frac{(0.5 - r)(c + r)}{1 + c + r})\]", text_font_style="italic", standoff=5), 'below')
+    Title(text=r"\[\text{Satisfaction Index}: s = \frac{3}{4}(c - \frac{(0.5 - r)(c + r)}{1 + c + r})\]",
+          text_font_style="italic", standoff=5), 'below')
 
 fig2.x(x="Date",
        y="Crashes Norm",
