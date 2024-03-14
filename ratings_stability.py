@@ -46,7 +46,7 @@ fig1 = figure(
     height=600,
     width=800,
     x_axis_label="Average Daily Crashes",
-    y_axis_label="Weekly Average Rating",
+    y_axis_label="Daily Average Rating",
     background_fill_color="#fafafa",
     tools=["pan", "wheel_zoom", "reset", "save", "tap"]
 )
