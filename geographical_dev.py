@@ -7,11 +7,11 @@ import pandas as pd
 import geopandas as gpd
 import pycountry
 import json
-from preprocessing import ratings_country
+from preprocessing import ratings_country, sales
 from bokeh.io import output_file, show
-from bokeh.models import GeoJSONDataSource, LinearColorMapper, ColorBar, TabPanel, Tabs
+from bokeh.models import GeoJSONDataSource, LinearColorMapper, ColorBar, TabPanel, Tabs, HoverTool
 from bokeh.plotting import figure
-from bokeh.palettes import Iridescent23
+from bokeh.palettes import Iridescent23, TolYlOrBr9, RdYlGn8
 
 
 shapefile = "geo/ne_110m_admin_0_countries.shp"
@@ -26,11 +26,16 @@ def convert_country_name(code):
 
 monthly_grouper = pd.Grouper(key="Date", freq="ME")
 ratings_country["Country"] = ratings_country["Country"].apply(convert_country_name)
-monthly_summary = ratings_country.groupby([monthly_grouper, "Country"]).agg(
+monthly_summary_ratings = ratings_country.groupby([monthly_grouper, "Country"]).agg(
     {"Daily Average Rating": "mean", "Total Average Rating": "last"})
 
+monthly_grouper = pd.Grouper(key="Datetime", freq="ME")
+sales["Country"] = sales["Buyer Country"].apply(convert_country_name)
+monthly_summary_sales = sales.groupby([monthly_grouper, "Country"]).size().to_frame("Sales")
+monthly_summary_sales["Sales Change"] = monthly_summary_sales.groupby(level=1)["Sales"].pct_change()
 
-def monthly_figure(title, month, attribute, palette, low, high):
+
+def monthly_figure(title, monthly_summary, month, attribute, palette, low, high):
     month_data = monthly_summary.loc[month,]
     merged = gdf.merge(month_data, left_on="country_code", right_on="Country", how="left")
 
@@ -45,7 +50,8 @@ def monthly_figure(title, month, attribute, palette, low, high):
         height=500,
         width=1000,
         toolbar_location="right",
-        tools=["wheel_zoom", "pan", "reset"]
+        tools=["wheel_zoom", "pan", "reset"],
+        background_fill_color="#fafafa"
     )
 
     fig.xgrid.grid_line_color = None
@@ -58,20 +64,52 @@ def monthly_figure(title, month, attribute, palette, low, high):
     return fig
 
 
-tabs = []
-figs = []
-
-for month in monthly_summary.index.get_level_values("Date").unique():
-    fig = monthly_figure("Geographical Total Average Rating",
+ratings_tabs = []
+ratings_figs = []
+for month in monthly_summary_ratings.index.get_level_values("Date").unique():
+    fig = monthly_figure("Geographical Total Average Rating", monthly_summary=monthly_summary_ratings,
                          month=month, attribute="Total Average Rating", palette=Iridescent23, low=0, high=5)
-    figs.append(fig)
-    tabs.append(TabPanel(child=fig, title=month.strftime("%b %Y")))
+    fig.add_tools(HoverTool(tooltips=[('Country', '@country'), ('Total Average Rating', '@{Total Average Rating}')],
+                            formatters={'@Datetime': 'datetime'}))
+    ratings_figs.append(fig)
+    ratings_tabs.append(TabPanel(child=fig, title=month.strftime("%b %Y")))
+ratings_panel = TabPanel(child=Tabs(tabs=ratings_tabs), title="Geographical Total Average Rating")
 
-for fig in figs:
-    fig.x_range = figs[0].x_range
-    fig.y_range = figs[0].y_range
-    fig.tools = figs[0].tools
+sales_tabs = []
+sales_figs = []
+sales_dif_tabs = []
+sales_dif_figs = []
+for month in monthly_summary_sales.index.get_level_values("Datetime").unique():
+    fig = monthly_figure("Geographical Sales Volume", monthly_summary=monthly_summary_sales,
+                         month=month, attribute="Sales", palette=TolYlOrBr9, low=0, high=45)
+    fig.add_tools(HoverTool(tooltips=[('Country', '@country'), ('Sales Volume', '@Sales')]))
+    sales_figs.append(fig)
+    sales_tabs.append(TabPanel(child=fig, title=month.strftime("%b %Y")))
 
+    fig = monthly_figure("Geographical Sales Fractional Change", monthly_summary=monthly_summary_sales,
+                         month=month, attribute="Sales Change", palette=RdYlGn8[::-1], low=-2, high=2)
+    fig.add_tools(HoverTool(tooltips=[('Country', '@country'), ('Sales Change', '@{Sales Change}')]))
+    sales_dif_figs.append(fig)
+    sales_dif_tabs.append(TabPanel(child=fig, title=month.strftime("%b %Y")))
+sales_panel = TabPanel(child=Tabs(tabs=sales_tabs), title="Geographical Sales Volume")
+sales_dif_panel = TabPanel(child=Tabs(tabs=sales_dif_tabs), title="Geographical Sales Fractional Change")
+
+
+for fig in ratings_figs:
+    fig.x_range = ratings_figs[0].x_range
+    fig.y_range = ratings_figs[0].y_range
+    fig.tools = ratings_figs[0].tools
+
+for fig in sales_figs:
+    fig.x_range = sales_figs[0].x_range
+    fig.y_range = sales_figs[0].y_range
+    fig.tools = sales_figs[0].tools
+
+for fig in sales_dif_figs:
+    fig.x_range = sales_dif_figs[0].x_range
+    fig.y_range = sales_dif_figs[0].y_range
+    fig.tools = sales_dif_figs[0].tools
 
 output_file("vis4.html")
-show(Tabs(tabs=tabs))
+
+show(Tabs(tabs=[ratings_panel, sales_panel, sales_dif_panel]))
