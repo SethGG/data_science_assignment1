@@ -53,7 +53,8 @@ fig1.line(x="Datetime", y="Amount (Merchant Currency)", color="black", source=so
 fig1.legend.location = "top_left"
 fig1.legend.orientation = "horizontal"
 
-fig1.add_tools(HoverTool(tooltips=[('Date', '@Datetime{%Y-W%U (%-d %b)}'), ('Sku Id', '$name'), ('Transactions', '@$name')],
+fig1.add_tools(HoverTool(tooltips=[('Date', '@Datetime{%Y-W%U (%-d %b)}'),
+                                   ('Sku Id', '$name'), ('Transactions', '@$name')],
                          formatters={'@Datetime': 'datetime'}))
 
 fig2 = figure(
@@ -73,6 +74,7 @@ fig2.yaxis.formatter = PrintfTickFormatter(format="€ %s")
 
 fig2.line(x="Datetime", y="Amount (Merchant Currency)", color="black", source=source)
 
-fig2.add_tools(HoverTool(tooltips=[('Date', '@Datetime{%Y-W%U (%-d %b)}'), ('Revenue', '@{Amount (Merchant Currency)}')],
+fig2.add_tools(HoverTool(tooltips=[('Date', '@Datetime{%Y-W%U (%-d %b)}'),
+                                   ('Revenue', '@{Amount (Merchant Currency)}')],
                          formatters={'@Datetime': 'datetime'}))
 fig1.x_range = fig2.x_range
