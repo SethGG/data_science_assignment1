@@ -61,7 +61,7 @@ fig1.add_layout(labels)
 color_bar = s.construct_color_bar(width=10, title="Satisfaction Index")
 fig1.add_layout(color_bar, 'right')
 
-fig1.add_tools(HoverTool(tooltips=[('Date', '@Date{%Y-W%U}'),
+fig1.add_tools(HoverTool(tooltips=[('Date', '@Date{%Y-W%U (%-d %b)}'),
                                    ('Total Average Rating', '@{Total Average Rating}'),
                                    ('Daily Average Rating', '@{Daily Average Rating}'),
                                    ('Daily Crashes', '@{Daily Crashes}'),
@@ -116,7 +116,7 @@ sglyph = fig2.circle(x="Date",
 fig2.xaxis.ticker = FixedTicker(ticks=weekly_summary.index.astype(np.int64) // 10**6)
 fig2.xaxis.formatter = DatetimeTickFormatter(days="%U")
 
-fig2.add_tools(HoverTool(tooltips=[('Date', '@Date{%Y-W%U}'),
+fig2.add_tools(HoverTool(tooltips=[('Date', '@Date{%Y-W%U (%-d %b)}'),
                                    ('Crash Index', '@{Crashes Norm}'),
                                    ('Rating Index', '@{Rating Norm}'),
                                    ('Satisfaction Index', '@{Satisfaction Index}')],
